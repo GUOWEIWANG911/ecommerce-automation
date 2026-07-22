@@ -7,7 +7,7 @@ from pages.cart_page import CartPage
 
 class ProductPage(BasePage):
     # 1. 定义定位器常量
-    ADD_TO_CART_BUTTON = (By.LINK_TEXT, "Add to Cart")
+    ADD_TO_CART_BUTTON = (By.CSS_SELECTOR, "a[href*='workingItemId=EST-7']")
 
     def add_to_cart(self):
         """将商品加入购物车"""
