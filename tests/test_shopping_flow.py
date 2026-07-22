@@ -14,7 +14,7 @@ with open('test_data.yaml', 'r', encoding='utf-8') as f:
 class TestShoppingFlow(unittest.TestCase):
 
     @classmethod
-    def setupClass(cls):
+    def setUpClass(cls):
         # 1. 创建 Options 对象
         chrome_options = Options()
         # 2. 指定 Chrome 浏览器的二进制文件路径
