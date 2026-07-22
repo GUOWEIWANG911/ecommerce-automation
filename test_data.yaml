@@ -1,0 +1,20 @@
+# test_data.yaml
+login_cases:
+  - username: "j2ee"
+    password: "j2ee"
+    expected_title: "JPetStore Demo"
+  - username: "ACID"
+    password: "ACID"
+    expected_title: "JPetStore Demo"
+
+order_info:
+  card_type: "Visa"
+  card_number: "999 9999 9999 9999"
+  expiry_date: "12/03"
+  first_name: "ABC"
+  last_name: "XYZ"
+  address1: "901 San Antonio Road"
+  city: "Palo Alto"
+  state: "CA"
+  zip_code: "94303"
+  country: "USA"
