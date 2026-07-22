@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class BasePage:
     def __init__(self, driver):
         self.driver = driver
-        self.default_wait = WebDriverWait(driver, WAIT_TIMEOUT_NORMAL) # 设置10秒显示等待
+        self.default_wait = WebDriverWait(driver, WAIT_TIMEOUT_DYNAMIC) # 设置10秒显示等待
 
     def find_element(self, locator, timeout=None):
         """查找元素，带有显示等待"""
