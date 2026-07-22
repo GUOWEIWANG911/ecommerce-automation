@@ -7,10 +7,14 @@ WORKDIR /app
 # 3. 安装系统级依赖
 # 必须安装 Chrome 浏览器和 ChromeDriver，否则 Selenium 无法运行
 # libglib2.0-0 等库是 Chrome 运行必须的依赖
+# 安装 wget, gnupg, 和 Chrome 所需的依赖库
 RUN apt-get update && \
-    apt-get install -y wget gnupg unzip && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get install -y wget gnupg unzip libglib2.0-0 libnss3 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0 && \
+    # 使用新的方式添加 Google 的 GPG 密钥
+    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg && \
+    # 添加源列表，并指定使用刚才导入的密钥环
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    # 再次更新源列表并安装 Chrome
     apt-get update && \
     apt-get install -y google-chrome-stable && \
     # 安装与当前 Chrome 版本匹配的 ChromeDriver
