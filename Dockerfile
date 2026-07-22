@@ -19,12 +19,18 @@ RUN apt-get update && \
     apt-get install -y google-chrome-stable && \
     # 安装与当前 Chrome 版本匹配的 ChromeDriver
     CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1) && \
-    CHROMEDRIVER_URL="https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}" && \
-    LATEST_VERSION=$(wget -qO- ${CHROMEDRIVER_URL}) && \
-    wget -N https://chromedriver.storage.googleapis.com/${LATEST_VERSION}/chromedriver_linux64.zip -P /tmp && \
-    unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
+    # 从新的 Google for Testing 地址获取对应版本的 ChromeDriver 版本号
+    CHROMEDRIVER_VERSION=$(wget -qO- "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${CHROME_VERSION}") && \
+    # 从新的地址下载对应平台和版本的 ChromeDriver zip 包
+    wget -N "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -P /tmp && \
+    # 解压文件
+    unzip /tmp/chromedriver-linux64.zip -d /tmp/chromedriver && \
+    # 将 chromedriver 二进制文件移动到 PATH 环境变量中的目录
+    mv /tmp/chromedriver/chromedriver-linux64/chromedriver /usr/local/bin/ && \
+    # 添加可执行权限
     chmod +x /usr/local/bin/chromedriver && \
-    rm /tmp/chromedriver_linux64.zip && \
+    # 清理临时文件
+    rm -rf /tmp/chromedriver* && \
     # 清理缓存以减小镜像体积
     rm -rf /var/lib/apt/lists/*
 
