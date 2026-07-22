@@ -69,6 +69,7 @@ class TestShoppingFlow(unittest.TestCase):
 
     def test_complete_purchase_flow(self):
         driver = self.driver
+        self.driver.set_window_size(1920, 1080)
 
         """测试完整的登录、搜索、下单流程"""
         # 1. 登录(这里可以取第一组账号，或者单独指定一个测试账号)
