@@ -5,6 +5,7 @@ from ddt import ddt, data, unpack
 from selenium import webdriver
 from utils.config import BASE_URL, USERNAME, PASSWORD, SEARCH_KEYWORD
 from pages.login_page import LoginPage
+from selenium.webdriver.chrome.options import Options
 
 with open('test_data.yaml', 'r', encoding='utf-8') as f:
     GLOBAL_TEST_DATA = yaml.safe_load(f)
@@ -14,12 +15,24 @@ class TestShoppingFlow(unittest.TestCase):
 
     @classmethod
     def setupClass(cls):
-        cls.driver = webdriver.Chrome()
+        # 1. 创建 Options 对象
+        chrome_options = Options()
+        # 2. 指定 Chrome 浏览器的二进制文件路径
+        chrome_options.binary_location = "/usr/bin/google-chrome"
+
+        # 3. 添加在 Docker 环境中运行所必需的参数
+        chrome_options.add_argument("--headless") # 无头模式，不显示浏览器界面
+        chrome_options.add_argument("--no-sandbox") # 解决DevToolsActivePort文件不存在的报错
+        chrome_options.add_argument("--disable-dev-shm-usage") # 克服共享内存不足的问题
+
+        # 4. 将 options 传递给 webdriver
+        cls.driver = webdriver.Chrome(options=chrome_options)
+        
         cls.driver.maximize_window()
         cls.test_data = GLOBAL_TEST_DATA
 
     def setUp(self):
-        self.driver = webdriver.Chrome()
+        self.driver = self.__class__.driver
         self.driver.maximize_window()
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
