@@ -43,10 +43,11 @@ class TestShoppingFlow(unittest.TestCase):
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
-        
+
+        chrome_options.add_argument("--window-size=1920,1080")
         self.driver = webdriver.Chrome(options=chrome_options)
-        # self.driver.maximize_window()
-        self.driver.set_window_size(1920, 1080)
+
+        self.driver.delete_all_cookies()
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
     @data(*GLOBAL_TEST_DATA['login_cases'])
@@ -116,4 +117,9 @@ class TestShoppingFlow(unittest.TestCase):
 
     def tearDown(self):
         if self.driver:
-            self.driver.quit()
+            try:
+                self.driver.delete_all_cookies()
+            except Exception:
+                pass  # 如果 driver 已经断开，忽略错误
+
+        self.driver.quit()
