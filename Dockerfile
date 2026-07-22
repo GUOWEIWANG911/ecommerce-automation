@@ -9,7 +9,7 @@ WORKDIR /app
 # libglib2.0-0 等库是 Chrome 运行必须的依赖
 # 安装 wget, gnupg, 和 Chrome 所需的依赖库
 RUN apt-get update && \
-    apt-get install -y wget gnupg unzip libglib2.0-0 libnss3 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0 && \
+    apt-get install -y wget gnupg unzip libglib2.0-0 libnss3 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf-xlib-2.0-0 libgtk-3-0 libx11-xcb1 libxcb-dri3-0 && \
     # 使用新的方式添加 Google 的 GPG 密钥
     wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg && \
     # 添加源列表，并指定使用刚才导入的密钥环
