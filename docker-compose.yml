@@ -6,6 +6,7 @@ services:
     # 挂载结果目录，实现测试与报告容器共享数据
     volumes:
       - ./allure-results:/app/allure-results
+      - ./debug_screenshots:/app/debug_screenshots
     environment:
       # 测试输出目录（容器内路径）
       - PYTEST_ADDOPTS=--alluredir=/app/allure-results
