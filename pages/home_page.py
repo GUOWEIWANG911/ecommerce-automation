@@ -17,5 +17,11 @@ class HomePage(BasePage):
         return self
 
     def click_first_product(self):
+        # 尝试关闭常见的弹窗/遮罩
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, ".close-btn, .modal-close, [aria-label='Close']").click()
+        except:
+            pass
+        
         self.click(self.FIRST_PRODUCT_LINK)
         return ProductPage(self.driver) # 进入商品详情页
