@@ -45,9 +45,12 @@ class TestShoppingFlow(unittest.TestCase):
             chrome_options.add_argument("--disable-dev-shm-usage")
 
         chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--disable-cache")
         self.driver = webdriver.Chrome(options=chrome_options)
 
         self.driver.delete_all_cookies()
+        self.driver.execute_script("window.localStorage.clear();")
+        self.driver.execute_script("window.sessionStorage.clear();")
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
     @data(*GLOBAL_TEST_DATA['login_cases'])

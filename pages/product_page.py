@@ -5,7 +5,8 @@ from pages.cart_page import CartPage
 
 class ProductPage(BasePage):
     # JPetStore 商品详情页元素定位器
-    ADD_TO_CART_BUTTON = (By.LINK_TEXT, "Add to Cart")
+    # ADD_TO_CART_BUTTON = (By.LINK_TEXT, "Add to Cart")
+    ADD_TO_CART_BUTTON = (By.CSS_SELECTOR, "input[value='Add to Cart']")
 
     def add_to_cart(self):
         """将商品加入购物车"""
