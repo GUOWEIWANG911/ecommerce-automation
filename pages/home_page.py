@@ -1,5 +1,6 @@
 #pages/home_page.py
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from pages.base_page import BasePage
 from pages.product_page import ProductPage
 
@@ -10,12 +11,19 @@ class HomePage(BasePage):
     FIRST_PRODUCT_LINK = (By.CSS_SELECTOR, "#Catalog a") # 搜索"dog"后的第一个商品
 
     def search_product(self, keyword):
-        self.input_text(self.SEARCH_BOX, keyword)
-        # self.click(self.SEARCH_BUTTON)
-        # btn = self.find_element(self.SEARCH_BUTTON)
-        # self.driver.execute_script("arguments[0].click();", btn)
+        # self.input_text(self.SEARCH_BOX, keyword)
+        # # self.click(self.SEARCH_BUTTON)
+        # # btn = self.find_element(self.SEARCH_BUTTON)
+        # # self.driver.execute_script("arguments[0].click();", btn)
+        # return self
         search_box = self.find_element(self.SEARCH_BOX)
-        search_box.submit()
+        search_box.clear()
+        search_box.send_keys(keyword)
+        
+        # ✅ 核心修改：直接发送回车键，模拟用户操作
+        # 这比 click() 和 submit() 都更可靠，能强制触发表单提交
+        search_box.send_keys(Keys.RETURN)
+        
         return self
 
     def click_first_product(self):
@@ -24,6 +32,6 @@ class HomePage(BasePage):
             self.driver.find_element(By.CSS_SELECTOR, ".close-btn, .modal-close, [aria-label='Close']").click()
         except:
             pass
-
+        
         self.click(self.FIRST_PRODUCT_LINK)
         return ProductPage(self.driver) # 进入商品详情页
