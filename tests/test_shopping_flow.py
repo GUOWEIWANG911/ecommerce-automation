@@ -14,25 +14,34 @@ with open('test_data.yaml', 'r', encoding='utf-8') as f:
 class TestShoppingFlow(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        # 1. 创建 Options 对象
-        chrome_options = Options()
-        # 2. 指定 Chrome 浏览器的二进制文件路径
-        chrome_options.binary_location = "/usr/bin/google-chrome"
+    # def setUpClass(cls):
+    #     # 1. 创建 Options 对象
+    #     chrome_options = Options()
+    #     # 2. 指定 Chrome 浏览器的二进制文件路径
+    #     chrome_options.binary_location = "/usr/bin/google-chrome"
 
-        # 3. 添加在 Docker 环境中运行所必需的参数
-        chrome_options.add_argument("--headless") # 无头模式，不显示浏览器界面
-        chrome_options.add_argument("--no-sandbox") # 解决DevToolsActivePort文件不存在的报错
-        chrome_options.add_argument("--disable-dev-shm-usage") # 克服共享内存不足的问题
+    #     # 3. 添加在 Docker 环境中运行所必需的参数
+    #     chrome_options.add_argument("--headless") # 无头模式，不显示浏览器界面
+    #     chrome_options.add_argument("--no-sandbox") # 解决DevToolsActivePort文件不存在的报错
+    #     chrome_options.add_argument("--disable-dev-shm-usage") # 克服共享内存不足的问题
 
-        # 4. 将 options 传递给 webdriver
-        cls.driver = webdriver.Chrome(options=chrome_options)
+    #     # 4. 将 options 传递给 webdriver
+    #     cls.driver = webdriver.Chrome(options=chrome_options)
         
-        cls.driver.maximize_window()
-        cls.test_data = GLOBAL_TEST_DATA
+    #     cls.driver.maximize_window()
+    #     cls.test_data = GLOBAL_TEST_DATA
 
     def setUp(self):
-        self.driver = self.__class__.driver
+        # self.driver = self.__class__.driver
+        # self.driver.get(f"{BASE_URL}/actions/Catalog.action")
+        chrome_options = Options()
+        chrome_options.binary_location = "/usr/bin/google-chrome"
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        
+        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver.maximize_window()
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
     @data(*GLOBAL_TEST_DATA['login_cases'])
@@ -101,4 +110,5 @@ class TestShoppingFlow(unittest.TestCase):
         print(f"✅ 测试通过！生成的订单号为: {order_id}")
 
     def tearDown(self):
-        self.driver.quit()
+        if self.driver:
+            self.driver.quit()
