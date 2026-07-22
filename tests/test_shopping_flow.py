@@ -33,7 +33,6 @@ class TestShoppingFlow(unittest.TestCase):
 
     def setUp(self):
         self.driver = self.__class__.driver
-        self.driver.maximize_window()
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
     @data(*GLOBAL_TEST_DATA['login_cases'])
