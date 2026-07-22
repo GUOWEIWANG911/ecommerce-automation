@@ -19,11 +19,11 @@ class BasePage:
         wait = WebDriverWait(self.driver, timeout) if timeout else self.default_wait
 
         try:
-            return wait.until(EC.visibility_of_element_located(locator))
+            return wait.until(EC.element_to_be_clickable(locator))
         except TimeoutException:
             # 超时后自动截图，方便排查是网络慢还是元素变了
             self.save_screenshot("element_not_found")
-            logger.error(f"元素未找到：{locator}，超时时间：{timeout or WAIT_TIMEOUT_NORMAL}秒")
+            logger.error(f"元素未找到：{locator}，超时时间：{timeout or WAIT_TIMEOUT_DYNAMIC}秒")
             raise  # 重新抛出异常，让测试用例正常报错
 
     def save_screenshot(self, name="debug"):
