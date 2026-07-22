@@ -1,4 +1,6 @@
 # tests/test_shopping_flow.py
+import sys
+import platform
 import yaml
 import unittest
 from ddt import ddt, data, unpack
@@ -34,14 +36,17 @@ class TestShoppingFlow(unittest.TestCase):
     def setUp(self):
         # self.driver = self.__class__.driver
         # self.driver.get(f"{BASE_URL}/actions/Catalog.action")
+
         chrome_options = Options()
-        chrome_options.binary_location = "/usr/bin/google-chrome"
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
+        if platform.system() == "Linux": 
+            chrome_options.binary_location = "/usr/bin/google-chrome"
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
         
         self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.maximize_window()
+        # self.driver.maximize_window()
+        self.driver.set_window_size(1920, 1080)
         self.driver.get(f"{BASE_URL}/actions/Catalog.action")
 
     @data(*GLOBAL_TEST_DATA['login_cases'])
