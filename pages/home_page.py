@@ -1,6 +1,8 @@
 #pages/home_page.py
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from pages.base_page import BasePage
 from pages.product_page import ProductPage
 
@@ -22,16 +24,20 @@ class HomePage(BasePage):
         
         # ✅ 核心修改：直接发送回车键，模拟用户操作
         # 这比 click() 和 submit() 都更可靠，能强制触发表单提交
-        search_box.send_keys(Keys.RETURN)
+        self.click(self.SEARCH_BUTTON)
         
         return self
 
     def click_first_product(self):
-        # 尝试关闭常见的弹窗/遮罩
-        try:
-            self.driver.find_element(By.CSS_SELECTOR, ".close-btn, .modal-close, [aria-label='Close']").click()
-        except:
-            pass
+        # 🔍 调试代码：打印当前 URL 和页面标题
+        print(f"[DEBUG] Current URL: {self.driver.current_url}")
+        print(f"[DEBUG] Page Title: {self.driver.title}")
+        
+        # 🔍 调试代码：打印页面源码的前 2000 个字符
+        print(f"[DEBUG] Page Source (first 2000 chars): {self.driver.page_source[:2000]}")
+        
+        wait = WebDriverWait(self.driver, 10)
+        wait.until(EC.presence_of_element_located(self.FIRST_PRODUCT_LINK))
         
         self.click(self.FIRST_PRODUCT_LINK)
-        return ProductPage(self.driver) # 进入商品详情页
+        return ProductPage(self.driver)
