@@ -11,16 +11,11 @@ class HomePage(BasePage):
 
     def search_product(self, keyword):
         self.input_text(self.SEARCH_BOX, keyword)
-        self.click(self.SEARCH_BUTTON)
+        # self.click(self.SEARCH_BUTTON)
+        btn = self.find_element(self.SEARCH_BUTTON)
+        self.driver.execute_script("arguments[0].click();", btn)
         return self
 
     def click_first_product(self):
-
-        # 尝试关闭常见的弹窗/遮罩
-        try:
-            self.driver.find_element(By.CSS_SELECTOR, ".close-btn, .modal-close, [aria-label='Close']").click()
-        except:
-            pass
-        
         self.click(self.FIRST_PRODUCT_LINK)
         return ProductPage(self.driver) # 进入商品详情页
