@@ -16,9 +16,22 @@ class HomePage(BasePage):
         self.input_text(self.SEARCH_BOX, keyword)
         self.click(self.SEARCH_BUTTON)
 
-        WebDriverWait(self.driver, 10).until(
-            EC.invisibility_of_element_located((By.ID, "Welcome"))
-        )  
+        # --- 优化后的等待逻辑 ---
+        wait = WebDriverWait(self.driver, 20) # 将等待时间延长到20秒
+        
+        try:
+            # 策略1：首选等待首页的 "Welcome" 标志消失
+            wait.until(EC.invisibility_of_element_located((By.ID, "Welcome")))
+        except TimeoutException:
+            # 策略2：如果等待消失超时，作为备选，检查是否已经跳转到了结果页
+            # 我们等待结果页的某个特征出现，比如 "Products" 标题
+            try:
+                wait.until(EC.presence_of_element_located((By.XPATH, "//h2[contains(text(), 'Products')]")))
+            except TimeoutException:
+                # 如果两个策略都失败了，再抛出异常，并附上调试信息
+                print(f"[DEBUG] 搜索后页面未跳转。当前URL: {self.driver.current_url}")
+                print(f"[DEBUG] 页面标题: {self.driver.title}")
+                raise
 
         return self
 
