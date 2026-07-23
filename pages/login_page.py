@@ -12,7 +12,7 @@ class LoginPage(BasePage):
     LOGIN_BUTTON = (By.NAME, "signon")
 
     # 首页上的 Sign In 链接定位器
-    SIGN_IN_LINK = (By.PARTIAL_LINK_TEXT, "Sign In")
+    SIGN_IN_LINK = (By.LINK_TEXT, "Sign In")
 
     def click_sign_in_link(self):
         """点击首页的 Sign In 链接"""
