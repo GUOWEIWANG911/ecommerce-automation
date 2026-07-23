@@ -32,16 +32,12 @@ class TestShoppingFlow:
 
         # 2. 状态清理：如果已登录，先退出
         try:
-            # 尝试找“退出”链接
             sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
             sign_out_link.click()
-            # 点击后，等待“登录”链接出现，确认已退出
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
             )
         except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            # 如果找不到“退出”链接，或者点击失败，或者等待超时
-            # 我们都认为当前已经是“未登录”状态，直接忽略异常，继续执行
             pass
 
         # 3. 登录
@@ -53,13 +49,7 @@ class TestShoppingFlow:
         assert expected_title in driver.title, \
             f"登录失败，期望标题包含 '{expected_title}'，实际标题: {driver.title}"
 
-    @pytest.mark.usefixtures("driver")
-    def test_complete_purchase_flow(self, driver, global_test_data):
-        """测试完整的登录、搜索、下单流程"""
-        driver.get(f"{BASE_URL}/actions/Catalog.action")
-        driver.set_window_size(1920, 1080)
-
-        # 如果上一个测试没退出，这里先退出
+        # 每次登录测试结束后，主动登出，为下一个账号/测试用例准备干净环境
         try:
             sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
             sign_out_link.click()
@@ -67,7 +57,39 @@ class TestShoppingFlow:
                 EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
             )
         except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            pass  # 本来就是未登录状态，或者清理过程有意外，都直接忽略
+            print(f"⚠️ 账号 {username} 登出失败，可能影响后续测试")
+
+    @pytest.mark.usefixtures("driver")
+    def test_complete_purchase_flow(self, driver, global_test_data):
+        """测试完整的登录、搜索、下单流程"""
+        driver.get(f"{BASE_URL}/actions/Catalog.action")
+        driver.set_window_size(1920, 1080)
+
+        # 2. 增强版状态清理：确保回到未登录的首页状态
+        try:
+            # 尝试找“退出”链接，如果找到说明是登录状态
+            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+            sign_out_link.click()
+            # 点击后，等待“登录”链接出现，确认已退出并回到首页
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
+            )
+        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
+            # 如果找不到“退出”链接，说明可能已经是未登录状态
+            # 但为了确保万无一失，我们再检查一次是否在首页
+            # 如果不在首页（比如还在购物车页），就重新加载一次首页
+            try:
+                WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
+                )
+            except TimeoutException:
+                # 如果等了3秒还没看到“Sign In”，说明页面不对，强制刷新
+                driver.get(f"{BASE_URL}/actions/Catalog.action")
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
+                )
+            # 如果找到了“Sign In”，说明状态正确，直接pass
+            pass
         
         # 1. 登录 - 从 fixture 获取数据
         login_page = LoginPage(driver)
@@ -108,6 +130,16 @@ class TestShoppingFlow:
         order_id = confirmation_page.get_order_id()
         assert order_id is not None, "未能获取到订单号"
         print(f"✅ 测试通过！生成的订单号为: {order_id}")
+
+        # 测试结束后主动登出，保持环境干净
+        try:
+            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+            sign_out_link.click()
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
+            )
+        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
+            print("⚠️ 完整流程测试登出失败")
 
 # import sys
 # import platform
