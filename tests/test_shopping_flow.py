@@ -5,7 +5,11 @@ from pages.login_page import LoginPage
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    TimeoutException,
+    ElementClickInterceptedException
+)
 from conftest import load_login_cases
 
 class TestShoppingFlow:
@@ -28,11 +32,16 @@ class TestShoppingFlow:
 
         # 2. 状态清理：如果已登录，先退出
         try:
-            driver.find_element(By.LINK_TEXT, "Sign Out").click()
+            # 尝试找“退出”链接
+            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+            sign_out_link.click()
+            # 点击后，等待“登录”链接出现，确认已退出
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
             )
-        except NoSuchElementException:
+        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
+            # 如果找不到“退出”链接，或者点击失败，或者等待超时
+            # 我们都认为当前已经是“未登录”状态，直接忽略异常，继续执行
             pass
 
         # 3. 登录
@@ -51,14 +60,14 @@ class TestShoppingFlow:
         driver.set_window_size(1920, 1080)
 
         # 如果上一个测试没退出，这里先退出
-        from selenium.common.exceptions import NoSuchElementException
         try:
-            driver.find_element(By.LINK_TEXT, "Sign Out").click()
+            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+            sign_out_link.click()
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
             )
-        except NoSuchElementException:
-            pass  # 本来就是未登录状态，不用管
+        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
+            pass  # 本来就是未登录状态，或者清理过程有意外，都直接忽略
         
         # 1. 登录 - 从 fixture 获取数据
         login_page = LoginPage(driver)
