@@ -36,8 +36,8 @@ class HomePage(BasePage):
         # 🔍 调试代码：打印页面源码的前 2000 个字符
         print(f"[DEBUG] Page Source (first 2000 chars): {self.driver.page_source[:2000]}")
         
-        wait = WebDriverWait(self.driver, 10)
-        wait.until(EC.presence_of_element_located(self.FIRST_PRODUCT_LINK))
+        wait = WebDriverWait(self.driver, 15)
+        wait.until(EC.element_to_be_clickable(self.FIRST_PRODUCT_LINK))
         
         self.click(self.FIRST_PRODUCT_LINK)
         return ProductPage(self.driver)
