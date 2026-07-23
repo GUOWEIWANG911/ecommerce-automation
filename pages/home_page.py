@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from pages.base_page import BasePage
 from pages.product_page import ProductPage
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 
 class HomePage(BasePage):
     # JPetStore 首页/搜索结果页元素定位器
@@ -14,8 +15,15 @@ class HomePage(BasePage):
     FIRST_PRODUCT_LINK = (By.CSS_SELECTOR, "#Catalog b a") # 搜索"dog"后的第一个商品
 
     def search_product(self, keyword):
-        self.input_text(self.SEARCH_BOX, keyword)
-        self.click(self.SEARCH_BUTTON)
+        # self.input_text(self.SEARCH_BOX, keyword)
+        # self.click(self.SEARCH_BUTTON)
+
+        # 1. 找到搜索框
+        search_box = self.driver.find_element(*self.SEARCH_BOX)
+        # 2. 清空搜索框（以防万一）
+        search_box.clear()
+        # 3. 输入关键词并按下回车键
+        search_box.send_keys(keyword + Keys.RETURN)
 
         # --- 优化后的等待逻辑 ---
         wait = WebDriverWait(self.driver, 20) # 将等待时间延长到20秒
