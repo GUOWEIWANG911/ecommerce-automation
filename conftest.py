@@ -17,7 +17,7 @@ def global_test_data():
     with open(data_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def driver():
     """初始化 Chrome 浏览器"""
     options = webdriver.ChromeOptions()
