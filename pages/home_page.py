@@ -16,6 +16,10 @@ class HomePage(BasePage):
         self.input_text(self.SEARCH_BOX, keyword)
         self.click(self.SEARCH_BUTTON)
 
+        WebDriverWait(self.driver, 10).until(
+            EC.invisibility_of_element_located((By.ID, "Welcome"))
+        )  
+
         return self
 
     def click_first_product(self):
