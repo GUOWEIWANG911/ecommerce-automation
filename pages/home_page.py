@@ -23,8 +23,13 @@ class HomePage(BasePage):
         print(f"[DEBUG] Current URL: {self.driver.current_url}")
         print(f"[DEBUG] Page Title: {self.driver.title}")
         
-        # 🔍 调试代码：打印页面源码的前 5000 个字符
-        print(f"[DEBUG] Page Source (first 5000 chars): {self.driver.page_source[:5000]}")
+        # # 🔍 调试代码：打印页面源码的前 5000 个字符
+        # print(f"[DEBUG] Page Source (first 5000 chars): {self.driver.page_source[:5000]}")
+        try:
+            content_div = self.driver.find_element(By.CSS_SELECTOR, "div#Content")
+            print(f"[DEBUG] 商品列表容器 (div#Content) 的HTML内容:\n{content_div.get_attribute('innerHTML')}")
+        except Exception as e:
+            print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
         
         wait = WebDriverWait(self.driver, 15)
         wait.until(EC.element_to_be_clickable(self.FIRST_PRODUCT_LINK))
