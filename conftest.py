@@ -22,6 +22,7 @@ def driver():
     """初始化 Chrome 浏览器"""
     options = webdriver.ChromeOptions()
     # 移除所有防检测配置，让浏览器"坦诚"运行
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
