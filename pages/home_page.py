@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from pages.base_page import BasePage
 from pages.product_page import ProductPage
+from selenium.common.exceptions import TimeoutException
 
 class HomePage(BasePage):
     # JPetStore 首页/搜索结果页元素定位器
