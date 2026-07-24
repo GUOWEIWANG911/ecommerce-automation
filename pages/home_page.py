@@ -1,4 +1,5 @@
 #pages/home_page.py
+import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -56,10 +57,18 @@ class HomePage(BasePage):
         # except Exception as e:
         #     print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
 
-        first_product_id_link = (By.XPATH, "//table//a[contains(@href, 'productId') and .//b//font]")
+        first_product_id_link = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'viewProduct')]")
 
-        wait = WebDriverWait(self.driver, 15)
-        link = wait.until(EC.element_to_be_clickable((By.XPATH, first_product_id_link)))
+        wait = WebDriverWait(self.driver, 20)
+        link = wait.until(EC.presence_of_element_located(first_product_id_link))
+
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", link)
+        time.sleep(0.5) # 稍微停顿一下，防止滚动未完成就点击
+
+        # 3. 再次等待可点击（防止被其他元素遮挡）
+        wait.until(EC.element_to_be_clickable(first_product_id_link))
+        
+        print(f"[DEBUG] 即将点击元素: {link.text}")
         link.click()
         
         # 【新增】显式等待页面跳转完成
