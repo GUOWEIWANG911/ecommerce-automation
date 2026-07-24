@@ -57,7 +57,7 @@ class HomePage(BasePage):
         # except Exception as e:
         #     print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
 
-        first_product_id_link = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'viewProduct')]")
+        first_product_id_link = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'viewProduct') and .//b]")
 
         wait = WebDriverWait(self.driver, 20)
         link = wait.until(EC.presence_of_element_located(first_product_id_link))
