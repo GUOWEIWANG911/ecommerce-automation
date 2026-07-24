@@ -16,6 +16,7 @@ class SearchResultsPage:
         first_product_link = (By.XPATH, "//div[@id='Catalog']//tr[2]//td[1]/a[contains(@href, 'viewProduct')]")
         
         wait = WebDriverWait(self.driver, 30)
+        wait.until(EC.presence_of_element_located(first_product_link))
         
         # 等待链接出现并可点击
         link = wait.until(EC.element_to_be_clickable(first_product_link))
