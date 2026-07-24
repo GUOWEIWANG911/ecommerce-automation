@@ -13,7 +13,7 @@ class HomePage(BasePage):
     SEARCH_BOX = (By.NAME, "keyword")
     SEARCH_BUTTON = (By.NAME, "searchProducts")
     # FIRST_PRODUCT_LINK = (By.CSS_SELECTOR, "#Catalog b a") # 搜索"dog"后的第一个商品
-    FIRST_PRODUCT_LINK = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'productId=') and .//img]")
+    # FIRST_PRODUCT_LINK = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'productId=') and .//img]")
 
     def search_product(self, keyword):
 
@@ -48,16 +48,47 @@ class HomePage(BasePage):
         print(f"[DEBUG] Current URL: {self.driver.current_url}")
         print(f"[DEBUG] Page Title: {self.driver.title}")
         
-        # # 🔍 调试代码：打印页面源码的前 5000 个字符
-        # print(f"[DEBUG] Page Source (first 5000 chars): {self.driver.page_source[:5000]}")
-        try:
-            content_div = self.driver.find_element(By.CSS_SELECTOR, "div#Content")
-            print(f"[DEBUG] 商品列表容器 (div#Content) 的HTML内容:\n{content_div.get_attribute('innerHTML')}")
-        except Exception as e:
-            print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
-        
+        # # # 🔍 调试代码：打印页面源码的前 5000 个字符
+        # # print(f"[DEBUG] Page Source (first 5000 chars): {self.driver.page_source[:5000]}")
+        # try:
+        #     content_div = self.driver.find_element(By.CSS_SELECTOR, "div#Content")
+        #     print(f"[DEBUG] 商品列表容器 (div#Content) 的HTML内容:\n{content_div.get_attribute('innerHTML')}")
+        # except Exception as e:
+        #     print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
+
+        first_product_link_xpath = "//div[@id='Catalog']//a[contains(@href, 'productId=') and .//img]"
+
         wait = WebDriverWait(self.driver, 15)
-        wait.until(EC.element_to_be_clickable(self.FIRST_PRODUCT_LINK))
+        link = wait.until(EC.element_to_be_clickable((By.XPATH, first_product_link_xpath)))
+        link.click()
         
-        self.click(self.FIRST_PRODUCT_LINK)
+        # 【新增】显式等待页面跳转完成
+        # 详情页的 URL 会包含 "viewProduct"
+        wait.until(lambda d: "viewProduct" in d.current_url)
+        
+        # 可选：再等一个详情页特有的元素，双重保险
+        # wait.until(EC.presence_of_element_located((By.TAG_NAME, "h2"))) 
+        
+        print(f"[DEBUG] 已跳转到详情页, 新URL: {self.driver.current_url}")
         return ProductPage(self.driver)
+        
+        # wait = WebDriverWait(self.driver, 15)
+        # wait.until(EC.element_to_be_clickable(self.FIRST_PRODUCT_LINK))
+        
+        # # self.click(self.FIRST_PRODUCT_LINK)
+        # self.driver.find_element(*FIRST_PRODUCT_LINK).click()
+
+
+        # # 【修改点2】关键！等待页面跳转到商品详情页
+        # # 商品详情页的特征是有一个 "Add to Cart" 按钮，我们等待它出现
+        # # 这比等待URL变化更可靠
+        # try:
+        #     wait.until(EC.presence_of_element_located((By.LINK_TEXT, "Add to Cart")))
+        # except TimeoutException:
+        #     # 如果等待超时，打印调试信息
+        #     print(f"[DEBUG] 页面跳转失败！当前URL: {self.driver.current_url}")
+        #     print(f"[DEBUG] 页面标题: {self.driver.title}")
+        #     raise
+
+        # # 确认跳转成功后，再返回 ProductPage 对象
+        # return ProductPage(self.driver)
