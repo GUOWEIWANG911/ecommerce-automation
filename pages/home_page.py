@@ -15,9 +15,10 @@ class HomePage(BasePage):
         search_box = self.driver.find_element(By.NAME, "keyword")
         search_box.send_keys(keyword)
         
-        # 找到搜索按钮并点击它，而不是用 Keys.RETURN
-        search_button = self.driver.find_element(By.NAME, "searchProducts")
-        # search_button.click()
+        wait = WebDriverWait(self.driver, 30)
+        search_button = wait.until(
+            EC.visibility_of_element_located((By.NAME, "searchProducts"))
+        )
         self.driver.execute_script("arguments[0].click();", search_button)
 
         wait = WebDriverWait(self.driver, 30)
