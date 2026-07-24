@@ -12,11 +12,10 @@ class HomePage(BasePage):
     # JPetStore 首页/搜索结果页元素定位器
     SEARCH_BOX = (By.NAME, "keyword")
     SEARCH_BUTTON = (By.NAME, "searchProducts")
-    FIRST_PRODUCT_LINK = (By.CSS_SELECTOR, "#Catalog b a") # 搜索"dog"后的第一个商品
+    # FIRST_PRODUCT_LINK = (By.CSS_SELECTOR, "#Catalog b a") # 搜索"dog"后的第一个商品
+    FIRST_PRODUCT_LINK = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'productId=') and .//img]")
 
     def search_product(self, keyword):
-        # self.input_text(self.SEARCH_BOX, keyword)
-        # self.click(self.SEARCH_BUTTON)
 
         # 1. 找到搜索框
         search_box = self.driver.find_element(*self.SEARCH_BOX)
