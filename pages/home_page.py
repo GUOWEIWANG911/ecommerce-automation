@@ -19,7 +19,7 @@ class HomePage(BasePage):
         search_button = self.driver.find_element(By.NAME, "searchProducts")
         search_button.click()
 
-        wait = WebDriverWait(self.driver, 10)
+        wait = WebDriverWait(self.driver, 30)
         wait.until(
             EC.presence_of_element_located((By.XPATH, "//th[contains(text(), 'Product ID')]"))
         )

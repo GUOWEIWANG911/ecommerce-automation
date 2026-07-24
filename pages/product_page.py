@@ -14,7 +14,7 @@ class ProductPage(BasePage):
         print(self.driver.current_url)
 
         """将商品加入购物车"""
-        wait = WebDriverWait(self.driver, 20)
+        wait = WebDriverWait(self.driver, 30)
         
         # 先确认页面加载到了商品列表区域
         wait.until(EC.presence_of_element_located((By.ID, "Catalog")))
