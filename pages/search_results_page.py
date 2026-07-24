@@ -13,7 +13,7 @@ class SearchResultsPage:
         在搜索结果页点击第一个商品
         """
 
-        first_product_link = (By.XPATH, "//div[@id='Catalog']//tr[2]//td[1]/a[contains(@href, 'viewProduct')]")
+        first_product_link = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'viewProduct')]")
         
         wait = WebDriverWait(self.driver, 30)
         wait.until(EC.presence_of_element_located(first_product_link))
