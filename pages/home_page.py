@@ -56,10 +56,10 @@ class HomePage(BasePage):
         # except Exception as e:
         #     print(f"[DEBUG] 未能找到商品列表容器 div#Content: {e}")
 
-        first_product_link_xpath = "//div[@id='Catalog']//a[contains(@href, 'productId=') and .//img]"
+        first_product_id_link = (By.XPATH, "//table//a[contains(@href, 'productId') and .//b//font]")
 
         wait = WebDriverWait(self.driver, 15)
-        link = wait.until(EC.element_to_be_clickable((By.XPATH, first_product_link_xpath)))
+        link = wait.until(EC.element_to_be_clickable((By.XPATH, first_product_id_link)))
         link.click()
         
         # 【新增】显式等待页面跳转完成
