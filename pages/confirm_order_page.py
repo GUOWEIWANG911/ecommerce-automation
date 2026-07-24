@@ -1,7 +1,7 @@
 # pages/confirm_order_page.py
 from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
-from pages.confirmation_page import ConfirmationPage # 假设这是你最终的成功页
+from pages.confirmation_page import ConfirmationPage
 
 class ConfirmOrderPage(BasePage):
     """对应截图中的 'Please confirm the information below...' 页面"""

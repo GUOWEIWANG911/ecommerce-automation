@@ -13,13 +13,7 @@ class ProductPage(BasePage):
     def add_to_cart(self):
         print(self.driver.current_url)
 
-        # 🔍 调试：打印页面所有链接文本
-        all_links = self.driver.find_elements(By.TAG_NAME, "a")
-        link_texts = [link.text for link in all_links if link.text.strip()]
-        print(f"[DEBUG] 页面所有链接文本: {link_texts}")
-        print(f"[DEBUG] 进入 add_to_cart, 当前URL: {self.driver.current_url}")
         """将商品加入购物车"""
-        # 2. 把等待和点击逻辑放进方法里
         wait = WebDriverWait(self.driver, 20)
         
         # 先确认页面加载到了商品列表区域
