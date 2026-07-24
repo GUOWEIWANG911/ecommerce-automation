@@ -22,6 +22,6 @@ class SearchResultsPage:
         link.click()
         
         # 等待页面跳转到商品详情页
-        wait.until(lambda d: "viewProduct" in d.current_url)
+        wait.until(EC.presence_of_element_located((By.XPATH, "//a[text()='Add to Cart']")))
         
         return ProductPage(self.driver)
