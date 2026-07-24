@@ -17,7 +17,8 @@ class HomePage(BasePage):
         
         # 找到搜索按钮并点击它，而不是用 Keys.RETURN
         search_button = self.driver.find_element(By.NAME, "searchProducts")
-        search_button.click()
+        # search_button.click()
+        self.driver.execute_script("arguments[0].click();", search_button)
 
         wait = WebDriverWait(self.driver, 30)
         wait.until(
