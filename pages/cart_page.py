@@ -1,17 +1,25 @@
-# pages/cart_page.py
-from selenium.webdriver.common.by import By
+#pages/cart_page.py
 from pages.base_page import BasePage
-from pages.checkout_page import CheckoutPage
 
 class CartPage(BasePage):
-    # JPetStore 购物车页元素定位器
-    CHECKOUT_BUTTON = (By.LINK_TEXT, "Proceed to Checkout")
-    CHECKOUT_TITLE = (By.XPATH, "//h2[text()='Shopping Cart']")
-    def is_cart_page_loaded(self):
-        """验证购物车页面是否加载成功"""
-        return "Shopping Cart" in self.get_text(self.CHECKOUT_TITLE)
+    CART_HEADER = "h2:has-text('Shopping Cart')"
+    CHECKOUT_BUTTON = "a:has-text('Proceed to Checkout')"
+    ITEM_COUNT = "table tr:nth-child(2) td:nth-child(1)"
 
-    def go_to_checkout(self):
-        """进入结算页面"""
+    def is_cart_visible(self) -> bool:
+        """检查购物车页面是否加载"""
+        return self.is_visible(self.CART_HEADER)
+
+
+    def proceed_to_checkout(self) -> "CheckoutPage":
+        from pages.checkout_page import CheckoutPage
         self.click(self.CHECKOUT_BUTTON)
-        return CheckoutPage(self.driver)
+        return CheckoutPage(self.page)
+
+
+    def get_item_count(self) -> int:
+        """获取购物车商品数量"""
+        text = self.get_text(self.ITEM_COUNT)
+        return int(text) if text.isdigit() else 0
+
+

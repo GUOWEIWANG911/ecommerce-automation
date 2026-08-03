@@ -2,14 +2,6 @@
 import pytest
 from utils.config import BASE_URL, SEARCH_KEYWORD
 from pages.login_page import LoginPage
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    TimeoutException,
-    ElementClickInterceptedException
-)
 from conftest import load_login_cases
 
 class TestShoppingFlow:
@@ -22,87 +14,70 @@ class TestShoppingFlow:
         ],
         ids=[case['username'] for case in load_login_cases()]
     )
-    def test_login_with_multiple_accounts(self, driver, username, password, expected_title):
+    def test_login_with_multiple_accounts(self, page, username, password, expected_title):
         """数据驱动测试，验证多组账号登录"""
-        # 1. 访问首页
-        driver.get(f"{BASE_URL}/actions/Catalog.action")
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
+        # 1. 访问首页（Playwright 的 goto 自带等待，无需 WebDriverWait）
+        page.goto(f"{BASE_URL}/actions/Catalog.action")
 
-        # 2. 状态清理：如果已登录，先退出
-        try:
-            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+        # 2. 状态清理（关键修改点）
+        # 情况 A: 如果看到 "Sign Out"，说明已登录，点击退出
+        sign_out_link = page.locator("a:has-text('Sign Out')")
+        if sign_out_link.is_visible():
             sign_out_link.click()
-            WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-            )
-        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            pass
+            # 退出后通常会回到首页，等待 "Sign In" 出现
+            page.locator("a:has-text('Sign In')").wait_for()
 
-        # 3. 登录
-        login_page = LoginPage(driver)
-        login_page.click_sign_in_link()
+        # 情况 B: 如果看到 "Username" 输入框，说明已经在登录页了，不需要再点击 "Sign In"
+        # 注意：这里使用 input[name='username'] 或其他登录页特有的元素
+        username_input = page.locator("input[name='username']")
+        
+        login_page = LoginPage(page)
+        
+        # 只有当不在登录页时，才点击 "Sign In" 链接
+        if not username_input.is_visible():
+            login_page.click_sign_in_link()
+        
+        # 3. 执行登录
         home_page = login_page.login(username, password)
 
         # 4. 断言
-        assert expected_title in driver.title, \
-            f"登录失败，期望标题包含 '{expected_title}'，实际标题: {driver.title}"
+        assert expected_title in page.title(), \
+            f"登录失败，期望标题包含 '{expected_title}'，实际标题: {page.title}"
 
-        # 5. 每次登录测试结束后，主动登出，为下一个账号/测试用例准备干净环境
-        try:
-            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+        # 5. 登出：Playwright 的 click 自带重试，无需异常捕获
+        sign_out_link = page.locator("a:has-text('Sign Out')")
+        if sign_out_link.is_visible():
             sign_out_link.click()
-            WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-            )
-        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            print(f"账号 {username} 登出失败，可能影响后续测试")
+            page.locator("a:has-text('Sign In')").wait_for()
 
-    @pytest.mark.usefixtures("driver")
-    def test_complete_purchase_flow(self, driver, global_test_data):
+    def test_complete_purchase_flow(self, page, global_test_data):
         """测试完整的登录、搜索、下单流程"""
-        driver.get(f"{BASE_URL}/actions/Catalog.action")
-        driver.set_window_size(1920, 1080)
+        page.goto(f"{BASE_URL}/actions/Catalog.action")
+        page.set_viewport_size({"width": 1920, "height": 1080})
 
-        # 0. 增强版状态清理：确保回到未登录的首页状态
-        try:
-            # 尝试找“退出”链接，如果找到说明是登录状态
-            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+        # --- 状态清理开始 ---
+        sign_out_link = page.locator("a:has-text('Sign Out')")
+        if sign_out_link.is_visible():
             sign_out_link.click()
-            # 点击后，等待“登录”链接出现，确认已退出并回到首页
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-            )
-        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            # 如果找不到“退出”链接，说明可能已经是未登录状态
-            # 但为了确保万无一失，我们再检查一次是否在首页
-            # 如果不在首页（比如还在购物车页），就重新加载一次首页
-            try:
-                WebDriverWait(driver, 3).until(
-                    EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-                )
-            except TimeoutException:
-                # 如果等了3秒还没看到“Sign In”，说明页面不对，强制刷新
-                driver.get(f"{BASE_URL}/actions/Catalog.action")
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-                )
-            # 如果找到了“Sign In”，说明状态正确，直接pass
-            pass
-        
-        # 1. 登录 - 从 fixture 获取数据
-        login_page = LoginPage(driver)
-        login_page.click_sign_in_link()
+            page.locator("a:has-text('Sign In')").wait_for()
+
+        # 检查是否已经在登录页
+        if not page.locator("input[name='username']").is_visible():
+            login_page = LoginPage(page)
+            login_page.click_sign_in_link()
+        else:
+            login_page = LoginPage(page)
+        # --- 状态清理结束 ---
+
         test_user = global_test_data['login_cases'][0]
         home_page = login_page.login(test_user['username'], test_user['password'])
 
-        # 2. 搜索商品并进入详情
+        # 2. 搜索商品并进入详情（链式调用，Playwright 自动等待页面跳转）
         cart_page = home_page.search_product(SEARCH_KEYWORD).click_first_product().add_to_cart()
-        assert cart_page.is_cart_page_loaded(), "购物车页面未成功加载"
+        assert cart_page.is_cart_visible(), "购物车页面未成功加载"
 
         # 3. 进入结算页面
-        checkout_page = cart_page.go_to_checkout()
+        checkout_page = cart_page.proceed_to_checkout()
         assert checkout_page.is_loaded(), "结算页面未成功加载"
 
         # 4. 填写支付与账单信息 - 从 fixture 获取数据
@@ -131,12 +106,8 @@ class TestShoppingFlow:
         assert order_id is not None, "未能获取到订单号"
         print(f"✅ 测试通过！生成的订单号为: {order_id}")
 
-        # 测试结束后主动登出，保持环境干净
-        try:
-            sign_out_link = driver.find_element(By.LINK_TEXT, "Sign Out")
+        # 登出：Playwright 的 click 自带重试，无需异常捕获
+        sign_out_link = page.locator("a:has-text('Sign Out')")
+        if sign_out_link.is_visible():
             sign_out_link.click()
-            WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.LINK_TEXT, "Sign In"))
-            )
-        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException):
-            print("⚠️ 完整流程测试登出失败")
+            page.locator("a:has-text('Sign In')").wait_for()

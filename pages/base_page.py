@@ -1,56 +1,55 @@
-import time
-import logging
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from utils.config import WAIT_TIMEOUT_NORMAL, WAIT_TIMEOUT_CRITICAL, WAIT_TIMEOUT_DYNAMIC
-from utils.config import CHROME_DRIVER_PATH
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# pages/base_page.py
+from playwright.sync_api import Page, Locator
+from typing import Union, List
 
 class BasePage:
-    def __init__(self, driver):
-        self.driver = driver
-        self.default_wait = WebDriverWait(driver, WAIT_TIMEOUT_DYNAMIC) # 设置10秒显示等待
+    def __init__(self, page: Page):
+        self.page = page
 
-    def find_element(self, locator, timeout=None):
-        """查找元素，带有显示等待"""
-        wait = WebDriverWait(self.driver, timeout) if timeout else self.default_wait
 
-        try:
-            element = wait.until(EC.presence_of_element_located(locator))
-            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
-            return wait.until(EC.element_to_be_clickable(locator))
-        except TimeoutException:
-            # 超时后自动截图，方便排查是网络慢还是元素变了
-            self.save_screenshot("element_not_found")
-            logger.error(f"元素未找到：{locator}，超时时间：{timeout or WAIT_TIMEOUT_DYNAMIC}秒")
-            raise  # 重新抛出异常，让测试用例正常报错
+    def _get_locator(self, selector: str, timeout: int = 10000) -> Locator:
+        """
+        统一获取 Locator, Playwright 会自动等待元素可见且可交互
+        不再需要显示等待！
+        """
+        return self.page.locator(selector).first
 
-    def save_screenshot(self, name="debug"):
-        """保存截图到 debug_screenshots 文件夹"""
-        import os
-        dir_name = "debug_screenshots"
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name)
 
-        timestamp = int(time.time())
-        file_path = os.path.join(dir_name, f"{name}_{timestamp}.png")
-        self.driver.save_screenshot(file_path)
-        logger.info(f"截图已保存：{file_path}")
+    def click(self, selector: str):
+        """封装点击，自动等待元素可点击"""
+        self._get_locator(selector).click()
 
-    def click(self, locator):
-        """点击元素"""
-        self.find_element(locator).click()
 
-    def input_text(self, locator, text):
-        """输入文本"""
-        element = self.find_element(locator)
-        element.clear()
-        element.send_keys(text)
+    def fill(self, selector: str, text: str):
+        """封装输入，自动等待元素可输入"""
+        self._get_locator(selector).fill(text)
 
-    def get_text(self, locator):
-        """获取元素文本"""
-        return self.find_element(locator).text
-    
+
+    def get_text(self, selector: str) -> str:
+        """获取文本，自动等待元素可见"""
+        return self._get_locator(selector).text_content()
+
+
+    def is_visible(self, selector: str) -> bool:
+        """检查元素是否可见"""
+        return self._get_locator(selector).is_visible()
+
+
+    def select_option(self, selector: str, value: Union[str, List[str]]):
+        """
+        封装下拉框选择，支持单选和多选
+        :param selector: 选择器
+        :param value: 选项值（支持字符串或字符串列表）
+        """
+        self._get_locator(selector).select_option(value)
+
+
+    def select_custom_option(self, trigger_selector: str, option_selector: str):
+        """
+        封装自定义下拉框选择（非原生 select 标签）
+        :param trigger_selector: 触发下拉的按钮/输入框选择器
+        :param option_selector: 目标选项的选择器
+        """
+        self.click(trigger_selector)
+        self.click(option_selector)
+

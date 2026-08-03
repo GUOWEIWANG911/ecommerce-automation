@@ -1,31 +1,18 @@
-# pages/search_results_page.py
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from .product_page import ProductPage
+#pages/search_results_page.py
+from pages.base_page import BasePage
+from pages.product_page import ProductPage
 
-class SearchResultsPage:
-    def __init__(self, driver):
-        self.driver = driver
+class SearchResultsPage(BasePage):
+    # 精确匹配商品连接，避免匹配到到导航栏
+    FIRST_PRODUCT_LINK = "a[href*='productId=']"
 
-    def click_first_product(self):
-        """
-        在搜索结果页点击第一个商品
-        """
+    def click_first_product(self) -> ProductPage:
+        # 1. 点击第一个商品连接
+        # Playwright 会自动等待链接可见、可点击，且点击后页面跳转完成
+        self.click(self.FIRST_PRODUCT_LINK)
 
-        first_product_link = (By.XPATH, "//div[@id='Catalog']//a[contains(@href, 'viewProduct')]")
-        
-        wait = WebDriverWait(self.driver, 30)
-        wait.until(EC.presence_of_element_located(first_product_link))
-        
-        # 等待链接出现并可点击
-        link = wait.until(EC.element_to_be_clickable(first_product_link))
-        link.click()
+        # 2. 返回商品详情页面
+        # 注意: Playwright 的 click() 会自动等待页面加载完成
+        # 不再需要 wait.until(EC.presence_of_element_located(...))
+        return ProductPage(self.page)
 
-        print(f"[DEBUG] 点击后，当前页面URL: {self.driver.current_url}")
-        print(f"[DEBUG] 点击后，当前页面标题: {self.driver.title}")
-        
-        # 等待页面跳转到商品详情页
-        wait.until(EC.presence_of_element_located((By.XPATH, "//a[text()='Add to Cart']")))
-        print(f"[DEBUG] 商品详情页已加载: {self.driver.current_url}")
-        return ProductPage(self.driver)
