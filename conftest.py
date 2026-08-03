@@ -26,7 +26,7 @@ def browser():
     """会话级浏览器实例，所有测试共享，避免重复启动"""
     with sync_playwright() as p:
         browser = p.chromium.launch(
-            headless=False,
+            headless=True,
             args=["--no-sandbox", "--disable-dev-shm-usage"]
         )
         yield browser

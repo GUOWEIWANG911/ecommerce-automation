@@ -9,40 +9,46 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up environment variables
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          echo "TEST_USERNAME=${{ secrets.TEST_USERNAME }}" >> $GITHUB_ENV
-          echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> $GITHUB_ENV
-          echo "BASE_URL=${{ secrets.BASE_URL }}" >> $GITHUB_ENV
-          echo "SECURITY_ENABLED=true" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Run tests with Docker Compose
-        run: docker compose --profile ci up --abort-on-container-exit --exit-code-from test-runner
+      - name: Install Playwright browsers
+        run: playwright install --with-deps chromium
 
-      - name: Upload failure screenshots
+      - name: Run tests
+        run: pytest -v
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          SECURITY_ENABLED: true
+          CI: true
+
+      - name: Upload Playwright Trace
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-failure-screenshots
-          path: debug_screenshots/*.png
+          name: playwright-traces
+          path: traces/
           retention-days: 7
 
-      - name: Upload Allure results
+      - name: Upload Playwright HTML Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results
-          path: allure-results/
-          retention-days: 14
-
-      - name: Upload Allure report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report/
+          name: playwright-report
+          path: playwright-report/
           retention-days: 14

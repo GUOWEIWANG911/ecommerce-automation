@@ -23,11 +23,11 @@ wheels/
 .installed.cfg
 *.egg
 
-# ================= Pytest & Allure =================
+# ================= Pytest & Playwright =================
 .pytest_cache/
-allure-results/
-allure-report/
-html-report/
+playwright-report/
+traces/
+blob-report/
 screenshots/
 
 # ================= IDE & OS =================
