@@ -38,11 +38,11 @@ def browser():
                 args=["--no-sandbox", "--disable-dev-shm-usage"]
             )
         else:
-            browser = p.firefox.launch(
+            browser = p.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-dev-shm-usage"]
             )
-             
+
         yield browser
         browser.close()
 
