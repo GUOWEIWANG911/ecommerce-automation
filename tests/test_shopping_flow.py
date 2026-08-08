@@ -3,6 +3,7 @@ import pytest
 from utils.config import BASE_URL, SEARCH_KEYWORD
 from pages.login_page import LoginPage
 from conftest import load_login_cases
+from playwright.sync_api import expect
 
 class TestShoppingFlow:
 
@@ -14,60 +15,36 @@ class TestShoppingFlow:
         ],
         ids=[case['username'] for case in load_login_cases()]
     )
-    def test_login_with_multiple_accounts(self, page, username, password, expected_title):
+    def test_login_with_multiple_accounts(self, page, ensure_login_page, username, password, expected_title):
         """数据驱动测试，验证多组账号登录"""
-        # 1. 访问首页（Playwright 的 goto 自带等待，无需 WebDriverWait）
-        page.goto(f"{BASE_URL}/actions/Catalog.action")
-
-        # 2. 状态清理（关键修改点）
-        # 情况 A: 如果看到 "Sign Out"，说明已登录，点击退出
-        sign_out_link = page.locator("a:has-text('Sign Out')")
-        if sign_out_link.is_visible():
-            sign_out_link.click()
-            # 退出后通常会回到首页，等待 "Sign In" 出现
-            page.locator("a:has-text('Sign In')").wait_for()
-
-        # 情况 B: 如果看到 "Username" 输入框，说明已经在登录页了，不需要再点击 "Sign In"
-        # 注意：这里使用 input[name='username'] 或其他登录页特有的元素
-        username_input = page.locator("input[name='username']")
+        # 1. 统一清理 + 获取 LoginPage（仅 1 行）
+        login_page = ensure_login_page()
         
-        login_page = LoginPage(page)
-        
-        # 只有当不在登录页时，才点击 "Sign In" 链接
-        if not username_input.is_visible():
-            login_page.click_sign_in_link()
-        
-        # 3. 执行登录
+        # 2. 执行登录
         home_page = login_page.login(username, password)
 
-        # 4. 断言
+        # 3. 断言
         assert expected_title in page.title(), \
             f"登录失败，期望标题包含 '{expected_title}'，实际标题: {page.title}"
 
-        # 5. 登出：Playwright 的 click 自带重试，无需异常捕获
-        sign_out_link = page.locator("a:has-text('Sign Out')")
-        if sign_out_link.is_visible():
-            sign_out_link.click()
-            page.locator("a:has-text('Sign In')").wait_for()
 
-    def test_complete_purchase_flow(self, page, global_test_data):
+    def test_login_with_new_user(self, page, new_user, ensure_login_page):
+        """测试使用刚刚自动注册的新用户登录"""
+
+        # 1. 统一清理 + 获取 LoginPage
+        login_page = ensure_login_page()
+
+        # 2. 登录
+        home_page = login_page.login(new_user["username"], new_user["password"])
+
+        # 3. 断言
+        expect(page.locator("a:has-text('Sign Out')")).to_be_visible(timeout=5000)
+
+
+    def test_complete_purchase_flow(self, page, ensure_login_page, global_test_data):
         """测试完整的登录、搜索、下单流程"""
-        page.goto(f"{BASE_URL}/actions/Catalog.action")
-        page.set_viewport_size({"width": 1920, "height": 1080})
-
-        # --- 状态清理开始 ---
-        sign_out_link = page.locator("a:has-text('Sign Out')")
-        if sign_out_link.is_visible():
-            sign_out_link.click()
-            page.locator("a:has-text('Sign In')").wait_for()
-
-        # 检查是否已经在登录页
-        if not page.locator("input[name='username']").is_visible():
-            login_page = LoginPage(page)
-            login_page.click_sign_in_link()
-        else:
-            login_page = LoginPage(page)
-        # --- 状态清理结束 ---
+        # 1. 统一清理 + 获取 LoginPage
+        login_page = ensure_login_page()
 
         test_user = global_test_data['login_cases'][0]
         home_page = login_page.login(test_user['username'], test_user['password'])
@@ -105,9 +82,3 @@ class TestShoppingFlow:
         order_id = confirmation_page.get_order_id()
         assert order_id is not None, "未能获取到订单号"
         print(f"✅ 测试通过！生成的订单号为: {order_id}")
-
-        # 登出：Playwright 的 click 自带重试，无需异常捕获
-        sign_out_link = page.locator("a:has-text('Sign Out')")
-        if sign_out_link.is_visible():
-            sign_out_link.click()
-            page.locator("a:has-text('Sign In')").wait_for()

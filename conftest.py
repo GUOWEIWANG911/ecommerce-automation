@@ -1,10 +1,14 @@
 # conftest.py
 import os
 import yaml
+import random
+import string
 import pytest
 import allure
 from typing import Generator
 from playwright.sync_api import sync_playwright, Page, Browser
+from utils.config import BASE_URL
+from pages.login_page import LoginPage
 
 
 def load_login_cases():
@@ -21,6 +25,91 @@ def global_test_data():
     data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_data.yaml")
     with open(data_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
+
+
+@pytest.fixture(scope="function")
+def new_user(page):
+    """
+    UI 自动化注册 Fixture
+    自动生成随机账号，通过 UI 完成注册，并返回账号密码
+    """
+    # 1. 生成随机用户名和密码
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    user_data = {
+        "username": f"testuser_{random_suffix}",
+        "password": "Test@123456",
+        "first_name": "Auto",
+        "last_name": "Tester",
+        "email": f"test_{random_suffix}@test.com",
+        "phone": "13800138000",
+        "address1": "123 Test Street",
+        "city": "Nanjing",
+        "state": "JiangSu",
+        "zip": "210000",
+        "country": "China"
+    }
+
+    # 2. 打开注册页面
+    page.goto(f"{BASE_URL}/actions/Account.action?newAccountForm=")
+
+    page.locator("input[type='text'][name='username']").fill(user_data["username"])
+    page.locator("input[type='text'][name='password']").fill(user_data["password"])
+    page.locator("input[type='text'][name='repeatedPassword']").fill(user_data["password"])
+
+    page.locator("input[type='text'][name='account.firstName']").fill(user_data["first_name"])
+    page.locator("input[type='text'][name='account.lastName']").fill(user_data["last_name"])
+    page.locator("input[type='text'][name='account.email']").fill(user_data["email"])
+    page.locator("input[type='text'][name='account.phone']").fill(user_data["phone"])
+    page.locator("input[type='text'][name='account.address1']").fill(user_data["address1"])
+    page.locator("input[type='text'][name='account.city']").fill(user_data["city"])
+    page.locator("input[type='text'][name='account.state']").fill(user_data["state"])
+    page.locator("input[type='text'][name='account.zip']").fill(user_data["zip"])
+    page.locator("input[type='text'][name='account.country']").fill(user_data["country"])
+
+
+    page.locator("input[type='submit'][name='newAccount']").click()
+
+    try:
+        # 等待页面跳转离开注册表单页，或者出现成功提示文字
+        page.wait_for_url("**/Catalog.action", timeout=10000) 
+        print(f"新用户注册成功: {user_data['username']}")
+    except Exception as e:
+        # 如果超时，说明注册失败（可能是页面报错）
+        print(f"注册失败，当前页面内容: {page.content()[:500]}")
+        raise AssertionError(f"注册流程未完成: {e}")
+
+    # 5. 返回账号信息，供测试用例使用
+    return user_data
+
+@pytest.fixture
+def ensure_login_page(page):
+    """
+    工厂函数式 Fixture：
+    1. 导航到首页
+    2. 如果已登录则登出
+    3. 点击 Sign In 进入登录页
+    4. 返回 LoginPage 实例
+    """
+    def _go_to_login():
+        # === Setup
+        page.goto(f"{BASE_URL}/actions/Catalog.action")
+
+        sign_out_link = page.locator("a:has-text('Sign Out')")
+        if sign_out_link.is_visible():
+            sign_out_link.click()
+            page.locator("a:has-text('Sign In')").wait_for()
+
+        page.locator("a:has-text('Sign In')").click()
+        page.wait_for_selector("input[name='username']")
+        return LoginPage(page)
+
+    yield _go_to_login
+
+    # === Teardown
+    sign_out_link = page.locator("a:has-text('Sign Out')")
+    if sign_out_link.is_visible():
+        sign_out_link.click()
+        page.locator("a:has-text('Sign In')").wait_for()
 
 
 @pytest.fixture(scope="session")
@@ -128,13 +217,13 @@ def pytest_addhooks(pluginmanager):
 
 @pytest.hookimpl
 def pytest_my_custom_greeting(name):
-    print(f"\n🎉 自定义钩子触发啦！你好，{name}！测试已经全部结束！")
+    print(f"\n自定义钩子触发啦！你好，{name}！测试已经全部结束！")
     return "Greeting Success"
 
 
 def pytest_sessionfinish(session, exitstatus):
-    print("\n🚀 官方钩子：pytest_sessionfinish 正在执行...")
+    print("\n官方钩子：pytest_sessionfinish 正在执行...")
     
     # 调用我们自定义的钩子，并传入参数
     result = session.config.pluginmanager.hook.pytest_my_custom_greeting(name="测试工程师")
-    print(f"📢 自定义钩子的返回值是：{result}")
+    print(f"自定义钩子的返回值是：{result}")
