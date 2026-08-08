@@ -29,6 +29,8 @@ playwright-report/
 traces/
 blob-report/
 screenshots/
+allure-results/
+allure-report/
 
 # ================= IDE & OS =================
 .vscode/
