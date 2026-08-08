@@ -50,7 +50,7 @@ jobs:
           BASE_URL: ${{ secrets.BASE_URL }}
           SECURITY_ENABLED: true
           CI: true
-          PLAYWRIGHT_BROWSERS_PATH: 0
+          # PLAYWRIGHT_BROWSERS_PATH: 0
           # 传递当前矩阵的浏览器类型供测试脚本读取
           BROWSER_TYPE: ${{ matrix.browser }}
 
