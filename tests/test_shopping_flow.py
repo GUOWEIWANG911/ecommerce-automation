@@ -81,4 +81,4 @@ class TestShoppingFlow:
         confirmation_page = confirm_order_page.click_confirm()
         order_id = confirmation_page.get_order_id()
         assert order_id is not None, "未能获取到订单号"
-        print(f"✅ 测试通过！生成的订单号为: {order_id}")
+        print(f"测试通过！生成的订单号为: {order_id}")
