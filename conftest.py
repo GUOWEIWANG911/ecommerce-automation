@@ -35,7 +35,7 @@ def browser():
         elif browser_type == "webkit":
             browser = p.webkit.launch(
                 headless=True,
-                args=["--no-sandbox", "--disable-dev-shm-usage"]
+                # args=["--no-sandbox", "--disable-dev-shm-usage"]
             )
         else:
             browser = p.chromium.launch(
