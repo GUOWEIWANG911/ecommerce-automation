@@ -25,10 +25,24 @@ def global_test_data():
 def browser():
     """会话级浏览器实例，所有测试共享，避免重复启动"""
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )
+        browser_type = os.environ.get("BROWSER_TYPE", "chromium")
+
+        if browser_type == "firefox":
+            browser = p.firefox.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+        elif browser_type == "webkit":
+            browser = p.webkit.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+        else:
+            browser = p.firefox.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+             
         yield browser
         browser.close()
 

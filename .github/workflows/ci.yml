@@ -30,7 +30,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m playwright install --with-deps chromium
+          if [ "${{ matrix.browser }}" != "chromium" ]; then
+            python -m playwright install --with-deps ${{ matrix.browser }}
+          fi
           pip install -r requirements.txt
 
       # 直接使用带 --with-deps 的命令，它会自动处理所有系统库
