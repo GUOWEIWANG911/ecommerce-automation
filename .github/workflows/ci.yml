@@ -38,6 +38,7 @@ jobs:
           python -m playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run tests
+        shell: bash 
         run: |
           mkdir -p allure-results
           pytest -v \
