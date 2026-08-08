@@ -11,6 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+      # 可选：如果某个浏览器测试失败，是否立即取消其他正在运行的任务
+      # 设置为 false 可以 让你同时看到所有浏览器的测试结果  
+      fail-fast: false
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,22 +36,25 @@ jobs:
       # 直接使用带 --with-deps 的命令，它会自动处理所有系统库
       # 不需要额外的 apt-get 步骤，也不需要 sudo
       - name: Install Playwright browsers
-        run: playwright install --with-deps chromium
+        run: playwright install --with-deps ${{ matrix.browser }}
 
       - name: Run tests
-        run: pytest -v
+        run: pytest -v --html=playwright-report/report.html --self-contained-html
         env:
           TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
           BASE_URL: ${{ secrets.BASE_URL }}
           SECURITY_ENABLED: true
           CI: true
+          PLAYWRIGHT_BROWSERS_PATH: 0
+          # 传递当前矩阵的浏览器类型供测试脚本读取
+          BROWSER_TYPE: ${{ matrix.browser }}
 
       - name: Upload Playwright Trace
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces
+          name: playwright-traces-${{ matrix.browser }}
           path: traces/
           retention-days: 7
 
@@ -52,6 +62,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
           retention-days: 14
