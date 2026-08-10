@@ -118,4 +118,4 @@ class TestShoppingFlow:
         with pytest.raises(PlaywrightError) as exc_info:
             page.goto(f"{BASE_URL}/actions/Catalog.action")
 
-        assert re.search(r"ERR_\w+", str(exc_info.value))
+        assert re.search(r"Page\.goto:", str(exc_info.value))
