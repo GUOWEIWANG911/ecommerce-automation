@@ -4,6 +4,7 @@ from utils.config import BASE_URL, SEARCH_KEYWORD
 from pages.login_page import LoginPage
 from conftest import load_login_cases
 from playwright.sync_api import expect
+from playwright.sync_api import Error as PlaywrightError
 
 class TestShoppingFlow:
 
@@ -82,3 +83,38 @@ class TestShoppingFlow:
         order_id = confirmation_page.get_order_id()
         assert order_id is not None, "未能获取到订单号"
         print(f"测试通过！生成的订单号为: {order_id}")
+
+
+    def test_mock_out_of_stock(self, page, new_user, ensure_login_page):
+        """使用 page.route 模拟商品缺货"""
+        # 1. 设置路由拦截：拦截商品详情页请求
+        def handle_product_route(route):
+            # 返回一个伪造的 HTML 页面
+            fake_html = """
+            <html><body>
+                <div id="Catalog">
+                    <h2>Item: EST-1</2>
+                    <p class="error">Sorry, this item is currently OUT OF STOCK!</p>
+                </div>
+            </body></html>
+            """
+            route.fulfill(status=200, content_type="text/html", body=fake_html)
+
+        page.route("**/Catalog.action?viewProduct=*", handle_product_route)
+
+        # 2. 执行正常的页面操作
+        login_page = ensure_login_page()
+        home_page = login_page.login(new_user["username"], new_user["password"])
+        cart_page = home_page.search_product(SEARCH_KEYWORD).click_first_product()
+
+        expect(page.locator("p.error")).to_contain_text("OUT OF STOCK")
+
+
+    def test_network_timeout(self, page):
+    # 拦截所有请求，模拟网络断开
+        page.route("**/*", lambda route: route.abort())
+
+        with pytest.raises(PlaywrightError) as exc_info:
+            page.goto(f"{BASE_URL}/actions/Catalog.action")
+
+        assert "net::ERR_FAILED" in str(exc_info.value)
