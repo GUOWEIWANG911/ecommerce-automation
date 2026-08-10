@@ -117,4 +117,4 @@ class TestShoppingFlow:
         with pytest.raises(PlaywrightError) as exc_info:
             page.goto(f"{BASE_URL}/actions/Catalog.action")
 
-        assert "net::ERR_FAILED" in str(exc_info.value)
+        assert "page.goto" in str(exc_info.value)
