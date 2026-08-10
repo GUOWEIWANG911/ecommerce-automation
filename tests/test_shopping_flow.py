@@ -1,4 +1,5 @@
 # tests/test_shopping_flow.py
+import re
 import pytest
 from utils.config import BASE_URL, SEARCH_KEYWORD
 from pages.login_page import LoginPage
@@ -117,4 +118,4 @@ class TestShoppingFlow:
         with pytest.raises(PlaywrightError) as exc_info:
             page.goto(f"{BASE_URL}/actions/Catalog.action")
 
-        assert "Error" in str(exc_info.value)
+        assert re.search(r"ERR_\w+", str(exc_info.value))
